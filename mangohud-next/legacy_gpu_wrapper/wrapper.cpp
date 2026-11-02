@@ -4,6 +4,8 @@
 #include "gpu/msm/kgsl.hpp"
 #include "gpu/panfrost.hpp"
 #include "gpu/panthor.hpp"
+#include "gpu/asahi.hpp"
+#include "gpu/muvm.hpp"
 
 #include "wrapper.hpp"
 
@@ -24,6 +26,10 @@ struct LegacyGPUWrapper::Impl {
             gpu = std::make_unique<Panfrost>(drm_node, pci_dev, vendor_id, device_id);
         } else if (driver == "panthor") {
             gpu = std::make_unique<Panthor>(drm_node, pci_dev, vendor_id, device_id);
+        } else if (driver == "asahi") {
+            gpu = std::make_unique<Asahi>(drm_node, pci_dev, vendor_id, device_id);
+        } else if (driver == "virtio-mmio") {
+            gpu = std::make_unique<Muvm>(drm_node, pci_dev, vendor_id, device_id);
         }
 
         if (gpu) {

@@ -17,7 +17,9 @@ mangohud_legacy_gpu_wrapper = static_library(
     '../server/metrics/gpu/msm/dpu.cpp',
     '../server/metrics/gpu/msm/kgsl.cpp',
     '../server/metrics/gpu/panfrost.cpp',
-    '../server/metrics/gpu/panthor.cpp'
+    '../server/metrics/gpu/panthor.cpp',
+    '../server/metrics/gpu/asahi.cpp',
+    '../server/metrics/gpu/muvm.cpp'
   ),
   cpp_args: ['-DMANGOHUD_LEGACY', '-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE', gpu_tracefs_args],
   include_directories: [
