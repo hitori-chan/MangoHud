@@ -58,6 +58,9 @@ void GPU_fdinfo::main_thread()
         metrics.fan_speed = gpu.get_fan_speed();
         metrics.voltage = gpu.get_voltage();
         metrics.fan_rpm = gpu.get_fan_rpm();
+        apu = gpu.get_is_apu();
+        metrics.apu_cpu_power = gpu.get_apu_cpu_power();
+        metrics.apu_cpu_temp = gpu.get_apu_cpu_temp();
 
         SPDLOG_DEBUG(
             "pci_dev = {}, pid = {}, driver = {}, "

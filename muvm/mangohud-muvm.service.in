@@ -1,0 +1,5 @@
+[Unit]
+Description=MangoHud's host readings for a muvm guest's HUD
+
+[Service]
+ExecStart="@MUVM_EXECUTABLE@"

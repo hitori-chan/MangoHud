@@ -18,6 +18,7 @@ class BatteryStats{
         std::string state[battery_count_max];
         int batt_count=0;
         bool batt_check = false;
+        bool muvm_copy = false; // the batteries are mangohud-muvm's copy of the host's
         std::vector<float> current_now_vec = {};
 };
 

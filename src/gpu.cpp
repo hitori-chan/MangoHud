@@ -2,6 +2,9 @@
 #include "gpu.h"
 #include "file_utils.h"
 #include "hud_elements.h"
+#define MUVM_DIR_ONLY
+#include "../mangohud-next/server/metrics/gpu/muvm.hpp"
+#undef MUVM_DIR_ONLY
 
 namespace fs = ghc::filesystem;
 
@@ -51,6 +54,12 @@ GPUS::GPUS(const overlay_params* early_params) {
                     "node \"{}\" is using driver \"{}\" which is unsupported by MangoHud. Skipping...",
                     node_name, driver
                 );
+                continue;
+            }
+
+            // a VM's virtio GPU, whose readings only muvm's host helper gives
+            if (driver == "virtio-mmio" && !in_muvm()) {
+                SPDLOG_DEBUG("node \"{}\" is a virtio GPU outside muvm. Skipping...", node_name);
                 continue;
             }
         }

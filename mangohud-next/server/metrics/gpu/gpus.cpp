@@ -4,6 +4,8 @@
 #include "nvidia/nvidia.hpp"
 #include "panfrost.hpp"
 #include "panthor.hpp"
+#include "asahi.hpp"
+#include "muvm.hpp"
 #include "msm/dpu.hpp"
 #include "msm/kgsl.hpp"
 #include "../common/helpers.hpp"
@@ -105,6 +107,10 @@ GPUS::GPUS() {
             gpu = std::make_shared<MSM_DPU>(drm_node, pci_dev, vendor_id, device_id);
         } else if (driver == "msm_drm") {
             gpu = std::make_shared<MSM_KGSL>(drm_node, pci_dev, vendor_id, device_id);
+        } else if (driver == "asahi") {
+            gpu = std::make_shared<Asahi>(drm_node, pci_dev, vendor_id, device_id);
+        } else if (driver == "virtio-mmio" && in_muvm()) {
+            gpu = std::make_shared<Muvm>(drm_node, pci_dev, vendor_id, device_id);
         } else {
             continue;
         }

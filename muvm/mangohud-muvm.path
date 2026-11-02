@@ -1,0 +1,8 @@
+[Unit]
+Description=MangoHud's host readings for a muvm guest's HUD, on its request
+
+[Path]
+PathChanged=%h/.cache/mangohud/muvm/request
+
+[Install]
+WantedBy=default.target

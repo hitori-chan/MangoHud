@@ -1,10 +1,14 @@
 #include <algorithm>
+#include <chrono>
+#include <fstream>
 #include <vector>
 #include <spdlog/spdlog.h>
 #include <filesystem.h>
 #include "battery.h"
 #include "file_utils.h"
 #include "string_utils.h"
+#define MUVM_DIR_ONLY
+#include "../mangohud-next/server/metrics/gpu/muvm.hpp"
 
 namespace fs = ghc::filesystem;
 using namespace std;
@@ -20,7 +24,16 @@ void BatteryStats::numBattery() {
     int batteryCount = 0;
     std::vector<fs::path> found;
 
-    for (const auto& path : { fs::path("/sys/class/power_supply/"), fs::path("/run/deckardcharger/") }) {
+    // muvm's guests see the host's batteries in its filesystem, mounted on /run/muvm-host; in Proton's container,
+    // which hides it, mangohud-muvm's copy of them
+    std::vector<fs::path> paths = { "/sys/class/power_supply/", "/run/deckardcharger/" };
+    const fs::path host("/run/muvm-host/sys/class/power_supply/");
+    const bool muvm = in_muvm();
+    muvm_copy = muvm && !fs::exists(host, ec);
+    if (muvm)
+        paths.push_back(muvm_copy ? fs::path(muvm_dir() + "/power_supply/") : host);
+
+    for (const auto& path : paths) {
         if (!fs::exists(path, ec))
             continue;
 
@@ -48,15 +61,26 @@ void BatteryStats::numBattery() {
     }
 
     batt_count = batteryCount;
-    batt_check = true;
+    // the copy comes with the helper's first answer
+    batt_check = batteryCount || !muvm_copy;
 }
 
 void BatteryStats::update() {
     if (!batt_check) {
         numBattery();
-        if (batt_count == 0) {
+        if (batt_check && batt_count == 0) {
             SPDLOG_ERROR("No battery found");
         }
+    }
+
+    // a request keeps the helper, and so its copy, going: the PID alone, when the GPU's poll (PID and number) has not
+    // asked for 2 s, so as not to take the place of its request
+    if (muvm_copy) {
+        std::error_code ec;
+        const std::string request = muvm_dir() + "/request";
+        auto written = fs::last_write_time(request, ec);
+        if (ec || fs::file_time_type::clock::now() - written > std::chrono::seconds(2))
+            std::ofstream(request) << getpid() << '\n';
     }
 
      if (batt_count > 0) {
@@ -77,6 +101,22 @@ float BatteryStats::getPercent()
         float percent = 0.0f;
         if (try_stof(percent, deckard_percent))
             return percent;
+    }
+
+    // The firmware's own state of charge where every battery has one: the figure the desktop (UPower) shows, and on
+    // Apple's SMC (BUIC) macOS's, 3-4 points above the remaining to full charge ratio
+    {
+        float sum = 0.0f;
+        int n = 0;
+        for (int i = 0; i < batt_count; i++) {
+            float percent = 0.0f;
+            if (try_stof(percent, read_line(battPath[i] + "/capacity"))) {
+                sum += percent;
+                n++;
+            }
+        }
+        if (n && n == batt_count)
+            return sum / n;
     }
 
     for(int i = 0; i < batt_count; i++) {
