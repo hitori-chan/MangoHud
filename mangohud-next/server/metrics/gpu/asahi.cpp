@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "asahi.hpp"
 #include <cmath>
+#include <mutex>
 
 Asahi::Asahi(
     const std::string& drm_node, const std::string& pci_dev,
@@ -44,6 +45,18 @@ int Asahi::get_process_load(pid_t pid) {
     *previous_gpu_time = gpu_time_now;
 
     return std::round(result);
+}
+
+// The memory is shared with the CPU, so the driver keeps no total: what the
+// processes the HUD follows have allocated.
+float Asahi::get_vram_used() {
+    float total = 0.f;
+
+    std::lock_guard lock(fdinfo.pids_mutex);
+    for (const auto& [pid, p] : fdinfo.pids)
+        total += fdinfo.get_memory_used(pid, "drm-total-memory");
+
+    return total;
 }
 
 float Asahi::get_process_vram_used(pid_t pid) {
