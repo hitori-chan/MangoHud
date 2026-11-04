@@ -29,6 +29,7 @@ public:
     );
 
     // System-related functions
+    float get_vram_used()   override;
     int  get_temperature()  override;
     bool get_is_apu()       override { return true; }
     int  get_apu_cpu_temp() override;
