@@ -17,6 +17,7 @@ private:
 
     std::atomic<bool> stop_thread { false };
     std::atomic<bool> paused { false };
+    std::atomic<bool> apu { false };
 
     struct gpu_metrics metrics;
     mutable std::mutex metrics_mutex;
@@ -47,6 +48,11 @@ public:
     {
         return metrics;
     };
+
+    bool is_apu() const
+    {
+        return apu;
+    }
 
     void pause()
     {
