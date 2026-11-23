@@ -79,6 +79,22 @@ float BatteryStats::getPercent()
             return percent;
     }
 
+    // The firmware's own state of charge where every battery has one: the figure the desktop (UPower) shows, and on
+    // Apple's SMC (BUIC) macOS's, 3-4 points above the remaining to full charge ratio
+    {
+        float sum = 0.0f;
+        int n = 0;
+        for (int i = 0; i < batt_count; i++) {
+            float percent = 0.0f;
+            if (try_stof(percent, read_line(battPath[i] + "/capacity"))) {
+                sum += percent;
+                n++;
+            }
+        }
+        if (n && n == batt_count)
+            return sum / n;
+    }
+
     for(int i = 0; i < batt_count; i++) {
         string syspath = battPath[i];
         string charge_now = syspath + "/charge_now";

@@ -371,3 +371,4 @@ endif
 if get_option('with_mangohud_next')
   subdir('mangohud-next')
 endif
+
